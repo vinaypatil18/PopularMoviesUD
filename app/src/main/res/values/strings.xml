@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_movie_details">MovieDetail</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Sort By Pref -->
+    <string name="pref_sortBy_label">Sort By</string>
+    <string name="pref_sortBy_popular">Most Popular</string>
+    <string name="pref_sortBy_highestRated">Highest Rated</string>
+    <string name="pref_sortBy_popular_value">popularity</string>
+    <string name="pref_sortBy_highestRated_value">vote_count</string>
+    <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_sortBy_key" translatable="false">sortBy</string>
+</resources>
