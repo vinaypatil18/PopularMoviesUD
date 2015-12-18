@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
+import com.vinay.passioneer.popularmovies.model.MovieModel;
 
 import java.util.List;
 

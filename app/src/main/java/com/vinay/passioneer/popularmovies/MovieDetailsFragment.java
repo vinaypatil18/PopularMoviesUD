@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.vinay.passioneer.popularmovies.model.MovieModel;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -28,7 +29,7 @@ public class MovieDetailsFragment extends Fragment {
 
         Log.v(LOG_TAG,"Setting required views for movie details...");
         TextView title= (TextView)rootView.findViewById(R.id.movie_title);
-        title.setText(movieModel.getTitle());
+        title.setText(movieModel.getOriginalTitle());
 
         int imageWidth = Util.getImageWidth(getContext());
         int imageHeight = (int)(imageWidth/0.66);

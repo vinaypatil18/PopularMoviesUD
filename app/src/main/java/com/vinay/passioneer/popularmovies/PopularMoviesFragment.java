@@ -2,7 +2,6 @@ package com.vinay.passioneer.popularmovies;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,16 +13,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.squareup.okhttp.HttpUrl;
+import com.vinay.passioneer.popularmovies.model.MovieModel;
+import com.vinay.passioneer.popularmovies.network.WebService;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,121 +101,30 @@ public class PopularMoviesFragment extends Fragment {
 
         @Override
         protected List<MovieModel> doInBackground(String... sortByParams) {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String popularMoviesJsonStr = null;
 
+            //base URL
+            final String MOVIE_DB_BASE_URL =
+                    "http://api.themoviedb.org/3/discover/movie";
+            //this will be used in either case
+            final String QUERY_PARAM = "sort_by";
+            final String API_KEY_PARAM = "api_key";
+            final String SORT_ORDER = ".desc";
+
+            HttpUrl.Builder urlBuilder = HttpUrl.
+                    parse(MOVIE_DB_BASE_URL).newBuilder();
+            urlBuilder.addQueryParameter(QUERY_PARAM,sortByParams[0]+SORT_ORDER);
+            urlBuilder.addQueryParameter(API_KEY_PARAM,BuildConfig.MOVIE_DB_ORG_API_KEY);
+            String url = urlBuilder.build().toString();
+
+            List<MovieModel> results = null;
             try {
-
-                //base URL
-                final String FORECAST_BASE_URL =
-                        "http://api.themoviedb.org/3/discover/movie?";
-                //this will be used in either case
-                final String QUERY_PARAM = "sort_by";
-                final String API_KEY_PARAM = "api_key";
-                final String SORT_ORDER = ".desc";
-                //sortByParams will either have popularity or vote_count value
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(QUERY_PARAM, sortByParams[0] + SORT_ORDER)
-                        .appendQueryParameter(API_KEY_PARAM, BuildConfig.MOVIE_DB_ORG_API_KEY)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                Log.v(LOG_TAG, "Built URI " + builtUri.toString());
-
-                // Create the request to themoviedb.org, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                popularMoviesJsonStr = buffer.toString();
-
-                Log.v(LOG_TAG, "Movies JSON string: " + popularMoviesJsonStr);
+               results  = WebService.fetchPopularMovies(url);
             } catch (IOException e) {
-                Log.e(LOG_TAG, e.getLocalizedMessage());
                 e.printStackTrace();
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
             }
-            try {
-                return getMoviesDataFromJSON(popularMoviesJsonStr);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG,"Error in parsing JSON response : "+e.getMessage());
-            }
-            return null;
+            return results;
         }
 
-        /**
-         * parse the required movie metadata
-         * @param popularMoviesJsonStr
-         * @return movieModelList to set the adapter
-         * @throws JSONException
-         */
-        private List<MovieModel> getMoviesDataFromJSON(String popularMoviesJsonStr) throws JSONException {
-
-            final String ORIGINAL_TITLE = "original_title";
-            final String OVERVIEW = "overview";
-            final String VOTE_COUNT = "vote_count";
-            final String VOTE_AVERAGE = "vote_average";
-            final String POPULARITY = "popularity";
-            final String ID = "id";
-            final String POSTER_PATH = "poster_path";
-            final String RELEASE_DATE = "release_date";
-            final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w185";
-            final String RESULTS = "results";
-
-            JSONObject popularMoviesJSON = new JSONObject(popularMoviesJsonStr);
-            JSONArray resultsArray = popularMoviesJSON.getJSONArray(RESULTS);
-
-            Log.v(LOG_TAG, "results length = " + resultsArray.length());
-            List<MovieModel> movieModels = new ArrayList<>();
-            MovieModel movieModel;
-            for (int i = 0; i < resultsArray.length(); i++) {
-                movieModel = new MovieModel();
-
-                JSONObject movieDetailsJSON = resultsArray.getJSONObject(i);
-                movieModel.setTitle(movieDetailsJSON.getString(ORIGINAL_TITLE));
-                movieModel.setOverview(movieDetailsJSON.getString(OVERVIEW));
-                movieModel.setPosterPath(BASE_IMAGE_URL + movieDetailsJSON.getString(POSTER_PATH));
-                movieModel.setPopularity(movieDetailsJSON.getInt(POPULARITY));
-                movieModel.setId(movieDetailsJSON.getInt(ID));
-                movieModel.setVoteCount(movieDetailsJSON.getInt(VOTE_COUNT));
-                movieModel.setReleaseDate(movieDetailsJSON.getString(RELEASE_DATE));
-                movieModel.setVoteAverage(movieDetailsJSON.getDouble(VOTE_AVERAGE));
-
-                movieModels.add(movieModel);
-            }
-            return movieModels;
-        }
 
         /**
          * sets the movieAdapter
