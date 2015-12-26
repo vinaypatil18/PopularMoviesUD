@@ -13,9 +13,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.squareup.okhttp.HttpUrl;
 import com.vinay.passioneer.popularmovies.model.MovieModel;
-import com.vinay.passioneer.popularmovies.network.WebService;
+import com.vinay.passioneer.popularmovies.services.TMDB_Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class PopularMoviesFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if(savedInstanceState == null || !savedInstanceState.containsKey("popularMovies")){
-            movieModelList = new ArrayList<MovieModel>();
+            movieModelList = new ArrayList<>();
         } else {
             movieModelList = savedInstanceState.getParcelableArrayList("popularMovies");
         }
@@ -102,29 +101,19 @@ public class PopularMoviesFragment extends Fragment {
         @Override
         protected List<MovieModel> doInBackground(String... sortByParams) {
 
-            //base URL
-            final String MOVIE_DB_BASE_URL =
-                    "http://api.themoviedb.org/3/discover/movie";
-            //this will be used in either case
-            final String QUERY_PARAM = "sort_by";
-            final String API_KEY_PARAM = "api_key";
             final String SORT_ORDER = ".desc";
-
-            HttpUrl.Builder urlBuilder = HttpUrl.
-                    parse(MOVIE_DB_BASE_URL).newBuilder();
-            urlBuilder.addQueryParameter(QUERY_PARAM,sortByParams[0]+SORT_ORDER);
-            urlBuilder.addQueryParameter(API_KEY_PARAM,BuildConfig.MOVIE_DB_ORG_API_KEY);
-            String url = urlBuilder.build().toString();
+            String sortBy = sortByParams[0]+SORT_ORDER;
+            String apiKey = BuildConfig.MOVIE_DB_ORG_API_KEY;
 
             List<MovieModel> results = null;
             try {
-               results  = WebService.fetchPopularMovies(url);
+               results  = TMDB_Service.getPopularMovies(sortBy,apiKey);
+                Log.v(LOG_TAG,"Results Length = "+results.size());
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return results;
         }
-
 
         /**
          * sets the movieAdapter
