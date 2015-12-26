@@ -28,8 +28,11 @@ public class MovieDetailsFragment extends Fragment {
         MovieModel movieModel = getActivity().getIntent().getParcelableExtra("movieDetails");
 
         Log.v(LOG_TAG,"Setting required views for movie details...");
-        TextView title= (TextView)rootView.findViewById(R.id.movie_title);
-        title.setText(movieModel.getOriginalTitle());
+        ImageView backdrop_image= (ImageView)rootView.findViewById(R.id.backdrop_image);
+        Picasso.with(getContext())
+                .load(movieModel.getBackdrop_path())
+                .into(backdrop_image);
+
 
         int imageWidth = Util.getImageWidth(getContext());
         int imageHeight = (int)(imageWidth/0.66);

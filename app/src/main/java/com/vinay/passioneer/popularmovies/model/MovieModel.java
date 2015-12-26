@@ -3,7 +3,11 @@ package com.vinay.passioneer.popularmovies.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
 import com.vinay.passioneer.popularmovies.Util;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * implementing Parcelable so that we can send the movie metadata
@@ -19,6 +23,7 @@ public class MovieModel implements Parcelable {
     private Integer vote_count;
     private Double vote_average;
     private String release_date;
+    private String backdrop_path;
 
     protected MovieModel(Parcel in) {
         original_title = in.readString();
@@ -29,6 +34,7 @@ public class MovieModel implements Parcelable {
         vote_count = in.readInt();
         vote_average = in.readDouble();
         release_date = in.readString();
+        backdrop_path = in.readString();
     }
 
     public String getOriginalTitle() {
@@ -67,6 +73,10 @@ public class MovieModel implements Parcelable {
         return release_date;
     }
 
+    public String getBackdrop_path() {
+        return Util.BACKDROP_IMAGE_URL+backdrop_path;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -82,6 +92,7 @@ public class MovieModel implements Parcelable {
         dest.writeInt(vote_count);
         dest.writeDouble(vote_average);
         dest.writeString(release_date);
+        dest.writeString(backdrop_path);
     }
 
     public static final Creator<MovieModel> CREATOR = new Creator<MovieModel>() {
@@ -95,4 +106,13 @@ public class MovieModel implements Parcelable {
             return new MovieModel[size];
         }
     };
+
+    public static final class PopularMoviesResponse {
+        @SerializedName("results")
+        private List<MovieModel> movieModels = new ArrayList<>();
+
+        public List<MovieModel> getMovieModels() {
+            return movieModels;
+        }
+    }
 }

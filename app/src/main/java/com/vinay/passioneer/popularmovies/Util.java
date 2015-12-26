@@ -11,10 +11,11 @@ public class Util {
 
     private static final int DESIRED_WIDTH = 300;
     public static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w185";
+    public static final String BACKDROP_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
     /**
      * calculate the screen width and image/grid width
      * @param context
-     * @return
+     * @return imageWidth
      */
     public static int getImageWidth(Context context) {
         DisplayMetrics displayMetrics = new DisplayMetrics();
