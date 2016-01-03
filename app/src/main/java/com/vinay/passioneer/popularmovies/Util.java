@@ -9,9 +9,11 @@ import android.view.WindowManager;
  */
 public class Util {
 
+    public static final String API_KEY = BuildConfig.MOVIE_DB_ORG_API_KEY;
     private static final int DESIRED_WIDTH = 300;
     public static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w185";
     public static final String BACKDROP_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
+
     /**
      * calculate the screen width and image/grid width
      * @param context

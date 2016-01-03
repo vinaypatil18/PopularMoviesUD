@@ -77,7 +77,6 @@ public class PopularMoviesFragment extends Fragment {
 
         GridView gridview = (GridView) rootView.findViewById(R.id.movie_grid);
         gridview.setAdapter(movieAdapter);
-
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
@@ -103,11 +102,10 @@ public class PopularMoviesFragment extends Fragment {
 
             final String SORT_ORDER = ".desc";
             String sortBy = sortByParams[0]+SORT_ORDER;
-            String apiKey = BuildConfig.MOVIE_DB_ORG_API_KEY;
 
             List<MovieModel> results = null;
             try {
-               results  = TMDB_Service.getPopularMovies(sortBy,apiKey);
+               results  = TMDB_Service.getPopularMovies(sortBy,Util.API_KEY);
                 Log.v(LOG_TAG,"Results Length = "+results.size());
             } catch (IOException e) {
                 e.printStackTrace();
