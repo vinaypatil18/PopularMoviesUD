@@ -58,6 +58,22 @@
         </RelativeLayout>
 
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/dimen_16"
+            android:paddingBottom="@dimen/dimen_8"
+            android:paddingTop="@dimen/dimen_8"
+            android:text="@string/synopsis"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:textColor="@android:color/holo_red_dark" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginLeft="@dimen/dimen_16"
+            android:layout_marginRight="@dimen/dimen_16"
+            android:background="@android:color/darker_gray" />
+        <TextView
             android:id="@+id/movie_overview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/dimen_16"
             android:paddingBottom="@dimen/dimen_8"
-            android:text="TRAILERS"
+            android:text="@string/trailers"
             android:textAppearance="?android:textAppearanceMedium"
             android:textColor="@android:color/holo_red_dark" />
 
@@ -93,11 +109,6 @@
                 android:divider="@android:color/darker_gray"
                 android:orientation="horizontal"
                 android:showDividers="middle">
-                <!--<ImageButton
-
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_play_trailer"/>-->
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -106,7 +117,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/dimen_16"
             android:paddingBottom="@dimen/dimen_8"
-            android:text="USER REVIEWS"
+            android:text="@string/userReviews"
             android:textAppearance="?android:textAppearanceMedium"
             android:textColor="@android:color/holo_red_dark" />
 

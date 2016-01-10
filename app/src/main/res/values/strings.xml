@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Popular Movies</string>
     <string name="action_settings">Settings</string>
+    <string name="action_share">Share</string>
     <string name="title_activity_movie_details">MovieDetail</string>
     <string name="title_activity_settings">Settings</string>
 
@@ -12,4 +13,8 @@
     <string name="pref_sortBy_highestRated_value">vote_count</string>
     <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
     <string name="pref_sortBy_key" translatable="false">sortBy</string>
+
+    <string name="userReviews">USER REVIEWS</string>
+    <string name="synopsis">SYNOPSIS</string>
+    <string name="trailers">TRAILERS</string>
 </resources>

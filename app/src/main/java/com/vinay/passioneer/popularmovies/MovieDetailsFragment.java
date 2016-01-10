@@ -5,8 +5,13 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -31,10 +36,12 @@ import retrofit.Retrofit;
  */
 public class MovieDetailsFragment extends Fragment {
 
-    private final String LOG_TAG = "MovieDetailsFragment";
-
+    private final String LOG_TAG = MovieDetailsFragment.class.getSimpleName();
+    private String shareFirstTrailerURL = null;
+    private ShareActionProvider mShareActionProvider;
 
     public MovieDetailsFragment() {
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -74,34 +81,64 @@ public class MovieDetailsFragment extends Fragment {
 
 
         int movieID = movieModel.getId();
-
+        String movieName = movieModel.getOriginalTitle();
         final LinearLayout reviews = (LinearLayout) rootView.findViewById(R.id.reviews);
         setMovieReviews(movieID, reviews);
 
         final LinearLayout trailers = (LinearLayout) rootView.findViewById(R.id.trailers);
-        setMovieTrailers(movieID, trailers,imageHeight,imageWidth);
+        setMovieTrailers(movieID, movieName, trailers, imageHeight, imageWidth);
 
         return rootView;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_movie_details, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    private Intent createShareTrailerIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT,shareFirstTrailerURL);
+        return shareIntent;
+    }
+
     /**
      * get the movie trailers by calling TMDB API asynchronously
+     *
      * @param movieID
+     * @param movieName
      * @param trailers
      * @param imageHeight
      * @param imageWidth
      */
-    private void setMovieTrailers(int movieID, final LinearLayout trailers, final int imageHeight, final int imageWidth) {
+    private void setMovieTrailers(int movieID, final String movieName, final LinearLayout trailers, final int imageHeight, final int imageWidth) {
         Call<Trailers.TrailersResponse> trailersResponseCall = TMDB_Service.getMovieTrailers(movieID, Util.API_KEY);
         trailersResponseCall.enqueue(new Callback<Trailers.TrailersResponse>() {
             @Override
             public void onResponse(Response<Trailers.TrailersResponse> response, Retrofit retrofit) {
                 if (response != null && response.isSuccess()) {
+                    final String BASE_YOUTUBE_URL = "http://www.youtube.com/watch?v=";
+                    String video_thumbnail = "http://img.youtube.com/vi/";
+
                     Trailers.TrailersResponse trailersResponse = response.body();
                     List<Trailers> trailersList = trailersResponse.getTrailers();
 
+                    if (trailersList != null && trailersList.size() > 0) {
+                        shareFirstTrailerURL = "Check-out " + movieName + " trailer \n" + BASE_YOUTUBE_URL + trailersList.get(0).getKey();
+                        mShareActionProvider.setShareIntent(createShareTrailerIntent());
+                    }
                     for (final Trailers trailer : trailersList) {
-                        String video_thumbnail = "http://img.youtube.com/vi/";
                         ImageView imageView = new ImageView(getContext());
                         imageView.setAdjustViewBounds(true);
                         imageView.setPadding(0, 0, 8, 0);
@@ -109,7 +146,7 @@ public class MovieDetailsFragment extends Fragment {
                         imageView.setAdjustViewBounds(true);
                         Picasso.with(getContext())
                                 .load(video_thumbnail)
-                                .resize(imageWidth, imageHeight)
+                                .resize(300, 450)
                                 .into(imageView);
                         trailers.addView(imageView);
 
@@ -137,6 +174,7 @@ public class MovieDetailsFragment extends Fragment {
 
     /**
      * get the movie reviews by calling TMDB API asynchronously
+     *
      * @param movieID
      * @param reviews
      */
