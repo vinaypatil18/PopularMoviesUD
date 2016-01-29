@@ -9,8 +9,10 @@
     <string name="pref_sortBy_label">Sort By</string>
     <string name="pref_sortBy_popular">Most Popular</string>
     <string name="pref_sortBy_highestRated">Highest Rated</string>
+    <string name="pref_sortBy_favourite">My Favourites</string>
     <string name="pref_sortBy_popular_value">popularity</string>
     <string name="pref_sortBy_highestRated_value">vote_count</string>
+    <string name="pref_sortBy_favourite_value">favourite</string>
     <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
     <string name="pref_sortBy_key" translatable="false">sortBy</string>
 
