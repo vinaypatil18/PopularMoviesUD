@@ -35,15 +35,18 @@ public class TMDB_Service {
         return responseModel.getMovieModels();
     }
 
-    // asynchronous call will be made by the caller
-    public static Call<Trailers.TrailersResponse> getMovieTrailers(int movieID, String apiKey) {
+    public static List<Trailers> getMovieTrailers(int movieID, String apiKey) throws IOException {
         Call<Trailers.TrailersResponse> call = service.getMovieTrailers(movieID, apiKey);
-        return call;
+        Response<Trailers.TrailersResponse> response = call.execute();
+        Trailers.TrailersResponse trailersResponse = response.body();
+        return trailersResponse.getTrailers();
     }
 
-    public static Call<Reviews.ReviewsResponse> getMovieReviews(int movieID, String apiKey) {
+    public static List<Reviews> getMovieReviews(int movieID, String apiKey) throws IOException {
         Call<Reviews.ReviewsResponse> call = service.getMovieReviews(movieID, apiKey);
-        return call;
+        Response<Reviews.ReviewsResponse> response = call.execute();
+        Reviews.ReviewsResponse reviewsResponse = response.body();
+        return reviewsResponse.getReviews();
     }
 
 }
