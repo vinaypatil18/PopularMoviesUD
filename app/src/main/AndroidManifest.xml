@@ -37,6 +37,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.vinay.passioneer.popularmovies.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.vinay.passioneer.popularmovies"
+            android:name="com.vinay.passioneer.popularmovies.data.TMDB_Provider"
+            />
     </application>
 
 </manifest>
