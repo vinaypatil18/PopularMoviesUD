@@ -20,11 +20,14 @@
             app:popupTheme="@style/AppTheme.PopupOverlay" />
     </android.support.design.widget.AppBarLayout>
 
+    <include layout="@layout/content_movie_details" />
 
-    <fragment
-        android:id="@+id/movie_details_fragment"
-        android:name="com.vinay.passioneer.popularmovies.MovieDetailsFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/image_favourite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_star_black_18dp" />
+
 </android.support.design.widget.CoordinatorLayout>

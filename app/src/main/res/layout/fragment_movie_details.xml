@@ -73,6 +73,7 @@
             android:layout_marginLeft="@dimen/dimen_16"
             android:layout_marginRight="@dimen/dimen_16"
             android:background="@android:color/darker_gray" />
+
         <TextView
             android:id="@+id/movie_overview"
             android:layout_width="match_parent"
@@ -81,6 +82,7 @@
             android:textAppearance="?android:textAppearanceMedium" />
 
         <TextView
+            android:id="@+id/movie_trailers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/dimen_16"
@@ -108,11 +110,11 @@
                 android:clipChildren="false"
                 android:divider="@android:color/darker_gray"
                 android:orientation="horizontal"
-                android:showDividers="middle">
-            </LinearLayout>
+                android:showDividers="middle"></LinearLayout>
         </HorizontalScrollView>
 
         <TextView
+            android:id="@+id/user_reviews"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/dimen_16"
@@ -134,6 +136,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/dimen_8"
             android:orientation="vertical" />
-
     </LinearLayout>
+
 </ScrollView>
