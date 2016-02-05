@@ -2,6 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:layout_marginTop="?android:attr/actionBarSize"
     android:overScrollMode="ifContentScrolls">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -16,14 +17,15 @@
             android:id="@+id/backdrop_image"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:adjustViewBounds="true"
+            android:maxHeight="400dp"
             android:scaleType="fitXY" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="2">
 
             <ImageView
                 android:id="@+id/movie_poster_image"
@@ -42,6 +44,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_toRightOf="@id/movie_poster_image"
                 android:gravity="right"
+                android:text="Rating: 8/10"
                 android:textAppearance="?android:textAppearanceLarge" />
 
             <TextView
@@ -54,6 +57,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_toRightOf="@id/movie_poster_image"
                 android:gravity="right"
+                android:text="Release Date:  18-06-1992"
                 android:textAppearance="?android:textAppearanceMedium" />
         </RelativeLayout>
 
@@ -63,6 +67,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:padding="16dp"
+            android:text="Superhit!!!"
             android:textAppearance="?android:textAppearanceMedium" />
     </LinearLayout>
 </ScrollView>

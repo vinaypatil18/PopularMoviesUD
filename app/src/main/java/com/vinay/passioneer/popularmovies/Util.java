@@ -1,6 +1,8 @@
 package com.vinay.passioneer.popularmovies;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
@@ -25,5 +27,11 @@ public class Util {
         int optimalColumnCount = Math.round(screenWidth / DESIRED_WIDTH);
         int imageWidth = screenWidth / optimalColumnCount;
         return imageWidth;
+    }
+
+    public static String getPreferredSortByOption(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getString(context.getString(R.string.pref_sortBy_key),
+                context.getString(R.string.pref_sortBy_popular_value));
     }
 }

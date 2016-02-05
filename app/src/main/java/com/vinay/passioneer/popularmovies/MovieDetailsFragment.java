@@ -18,6 +18,7 @@ import com.vinay.passioneer.popularmovies.model.MovieModel;
 public class MovieDetailsFragment extends Fragment {
 
     private final String LOG_TAG = "MovieDetailsFragment";
+
     public MovieDetailsFragment() {
     }
 
@@ -25,31 +26,36 @@ public class MovieDetailsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
-        MovieModel movieModel = getActivity().getIntent().getParcelableExtra("movieDetails");
 
-        Log.v(LOG_TAG,"Setting required views for movie details...");
-        ImageView backdrop_image= (ImageView)rootView.findViewById(R.id.backdrop_image);
-        Picasso.with(getContext())
-                .load(movieModel.getBackdrop_path())
-                .into(backdrop_image);
+        Bundle bundle = getArguments();
+        MovieModel movieModel = new MovieModel();
+        if (bundle != null) {
+            movieModel = bundle.getParcelable("movieDetails");
+
+            Log.v(LOG_TAG, "Setting required views for movie details...");
+            ImageView backdrop_image = (ImageView) rootView.findViewById(R.id.backdrop_image);
+            Picasso.with(getContext())
+                    .load(movieModel.getBackdrop_path())
+                    .into(backdrop_image);
 
 
-        int imageWidth = Util.getImageWidth(getContext());
-        int imageHeight = (int)(imageWidth/0.66);
-        ImageView poster = (ImageView)rootView.findViewById(R.id.movie_poster_image);
-        Picasso.with(getContext())
-                .load(movieModel.getPosterPath())
-                .resize(imageWidth, imageHeight)
-                .into(poster);
+            int imageWidth = Util.getImageWidth(getContext());
+            int imageHeight = (int) (imageWidth / 0.66);
+            ImageView poster = (ImageView) rootView.findViewById(R.id.movie_poster_image);
+            Picasso.with(getContext())
+                    .load(movieModel.getPosterPath())
+                    .resize(imageWidth, imageHeight)
+                    .into(poster);
 
-        TextView releaseDate = (TextView) rootView.findViewById(R.id.release_date);
-        releaseDate.setText(movieModel.getReleaseDate());
+            TextView releaseDate = (TextView) rootView.findViewById(R.id.release_date);
+            releaseDate.setText(movieModel.getReleaseDate());
 
-        TextView userRating = (TextView) rootView.findViewById(R.id.user_rating);
-        userRating.setText(movieModel.getVoteAverage()+"/10");
+            TextView userRating = (TextView) rootView.findViewById(R.id.user_rating);
+            userRating.setText(movieModel.getVoteAverage() + "/10");
 
-        TextView overview= (TextView)rootView.findViewById(R.id.movie_overview);
-        overview.setText(movieModel.getOverview());
+            TextView overview = (TextView) rootView.findViewById(R.id.movie_overview);
+            overview.setText(movieModel.getOverview());
+        }
         return rootView;
     }
 }

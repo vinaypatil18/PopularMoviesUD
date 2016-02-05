@@ -36,6 +36,7 @@ public class MovieModel implements Parcelable {
         release_date = in.readString();
         backdrop_path = in.readString();
     }
+    public MovieModel(){}
 
     public String getOriginalTitle() {
         return original_title;
