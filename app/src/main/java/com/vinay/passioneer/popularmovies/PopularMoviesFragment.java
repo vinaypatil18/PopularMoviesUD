@@ -1,6 +1,5 @@
 package com.vinay.passioneer.popularmovies;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -35,18 +34,41 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     private static final String LOG_TAG = PopularMoviesFragment.class.getSimpleName();
     private String sortByValue;
     private boolean isFavourite = false;
+    private int mPosition = GridView.INVALID_POSITION;
     private static final int CURSOR_LOADER_ID = 0;
+    private PopularMovieViewHolder movieViewHolder;
+
+
+
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface TMDB_Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        void onItemSelected(Bundle bundle);
+    }
 
     public PopularMoviesFragment() {
 
     }
 
+    public static class PopularMovieViewHolder {
+
+        public GridView gridview;
+
+        public PopularMovieViewHolder(View view) {
+            gridview = (GridView) view.findViewById(R.id.movie_grid);
+        }
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-        if (!isFavourite) {
-            updatePopularMovies();
-        }
     }
 
     @Override
@@ -69,7 +91,8 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     /**
      * this will fetch the popular movies in the background thread.
      */
-    private void updatePopularMovies() {
+    public void updatePopularMovies(String sortByValue) {
+        this.sortByValue = sortByValue;
         FetchPopularMoviesTask popularMoviesTask = new FetchPopularMoviesTask();
         Log.v(LOG_TAG, "Fetching Popular Movies....");
         popularMoviesTask.execute();
@@ -78,11 +101,16 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onResume() {
         super.onResume();
+        restartLoader();
+    }
+
+    public void restartLoader() {
         if (Util.isDataChanged) {
             Util.isDataChanged = false;
             getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
-            if (mFavouriteMoviesAdapter != null)
+            if (mFavouriteMoviesAdapter != null) {
                 mFavouriteMoviesAdapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -108,6 +136,8 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        PopularMovieViewHolder viewHolder = new PopularMovieViewHolder(rootView);
+        rootView.setTag(viewHolder);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         sortByValue = sharedPreferences.getString(getString(R.string.pref_sortBy_key),
@@ -117,49 +147,62 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
         if (favourite.equals(sortByValue))
             isFavourite = true;
 
-        GridView gridview = (GridView) rootView.findViewById(R.id.movie_grid);
-        int actualPosterViewWidth = Util.getImageWidth(getContext());
+        movieViewHolder = (PopularMovieViewHolder) rootView.getTag();
         if (!isFavourite) {
-            movieAdapter = new MovieAdapter(getActivity(), actualPosterViewWidth, movieModelList);
-            gridview.setAdapter(movieAdapter);
-            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v,
-                                        int position, long id) {
-                    MovieModel movieModel = movieAdapter.getItem(position);
-                    Intent movieDetailsIntent = new Intent(getActivity(), MovieDetailsActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("movieID", movieModel.getId());
-                    bundle.putParcelable("movieDetails", movieModel);
-                    movieDetailsIntent.putExtras(bundle);
-                    startActivity(movieDetailsIntent);
-                }
-            });
+            setMovieAdapter(movieModelList);
         } else {
-            mFavouriteMoviesAdapter = new FavouriteMoviesAdapter(getContext(), null, 0,actualPosterViewWidth);
-            gridview.setAdapter(mFavouriteMoviesAdapter);
-
-            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> adapterView, View v,
-                                        int position, long id) {
-                    //MovieModel movieModel = movieAdapter.getItem(position);
-                    Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                    if (cursor != null) {
-                        int movieIdIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_ID);
-                        int movieID = cursor.getInt(movieIdIndex);
-                        Intent movieDetailsIntent = new Intent(getActivity(), MovieDetailsActivity.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putBoolean("isDataFromDB", true);
-                        bundle.putInt("movieID", movieID);
-                        movieDetailsIntent.putExtras(bundle);
-                        startActivity(movieDetailsIntent);
-                    }
-
-                }
-            });
+            setFavouriteMovieAdapter();
         }
 
         return rootView;
 
+    }
+
+    private void setFavouriteMovieAdapter() {
+        int actualPosterViewWidth = Util.getImageWidth(getContext());
+        mFavouriteMoviesAdapter = new FavouriteMoviesAdapter(getContext(), null, 0, actualPosterViewWidth);
+        movieViewHolder.gridview.setAdapter(mFavouriteMoviesAdapter);
+
+        movieViewHolder.gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> adapterView, View v,
+                                    int position, long id) {
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+
+                if (cursor != null) {
+                    int movieIdIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_ID);
+                    int movieID = cursor.getInt(movieIdIndex);
+                    Bundle bundle = new Bundle();
+                    bundle.putBoolean("isDataFromDB", true);
+                    bundle.putInt("movieID", movieID);
+                    ((TMDB_Callback) getActivity()).onItemSelected(bundle);
+                    mPosition = position;
+                }
+            }
+        });
+    }
+
+    private void setMovieAdapter(List<MovieModel> movieModelList) {
+        int actualPosterViewWidth = Util.getImageWidth(getContext());
+        movieAdapter = new MovieAdapter(getActivity(), actualPosterViewWidth, movieModelList);
+        movieViewHolder.gridview.setAdapter(movieAdapter);
+        movieViewHolder.gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+
+                MovieModel movieModel = movieAdapter.getItem(position);
+                Bundle bundle = new Bundle();
+                bundle.putInt("movieID", movieModel.getId());
+                bundle.putParcelable("movieDetails", movieModel);
+                ((TMDB_Callback) getActivity()).onItemSelected(bundle);
+                mPosition = position;
+            }
+        });
+    }
+
+    public void showFavouriteMovies() {
+        Util.isDataChanged = true;
+        restartLoader();
+        setFavouriteMovieAdapter();
     }
 
     @Override
@@ -213,9 +256,15 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
         @Override
         protected void onPostExecute(List<MovieModel> movieModels) {
             if (movieModels != null) {
-                Log.v(LOG_TAG, "Adding movie metadata to adapter");
-                movieAdapter.clear();
-                movieAdapter.addAll(movieModels);
+                if (movieAdapter == null) {
+                    setMovieAdapter(movieModels);
+                } else {
+                    Log.v(LOG_TAG, "Adding movie metadata to adapter");
+                    movieAdapter.clear();
+                    //movieAdapter.addAll(movieModels);
+                    setMovieAdapter(movieModels);
+                }
+                MovieAdapter.cnt = 0;
             }
         }
     }

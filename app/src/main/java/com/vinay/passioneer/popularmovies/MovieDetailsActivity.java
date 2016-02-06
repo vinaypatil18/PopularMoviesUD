@@ -13,6 +13,23 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+        if (savedInstanceState == null) {
+
+            Bundle bundle = getIntent().getExtras();
+
+
+            Bundle argBundle = new Bundle();
+            argBundle.putParcelable("movieDetails", bundle.getParcelable("movieDetails"));
+            argBundle.putBoolean("isDataFromDB", bundle.getBoolean("isDataFromDB"));
+            argBundle.putInt("movieID", bundle.getInt("movieID"));
+            MovieDetailsFragment movieDetailsFragment = new MovieDetailsFragment();
+            movieDetailsFragment.setArguments(argBundle);
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.movie_detail_container, movieDetailsFragment)
+                    .commit();
+        }
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 

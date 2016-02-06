@@ -23,7 +23,7 @@
     <include layout="@layout/content_movie_details" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/image_favourite"
+        android:id="@+id/favouriteFAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

@@ -19,4 +19,7 @@
     <string name="userReviews">USER REVIEWS</string>
     <string name="synopsis">SYNOPSIS</string>
     <string name="trailers">TRAILERS</string>
+    <string name="tile_highest_rated_movies">Highest Rated Movies</string>
+    <string name="tile_popular_movies">Popular Movies</string>
+    <string name="tile_favourite_movies">My Favourite Movies</string>
 </resources>

@@ -69,124 +69,143 @@ public class MovieDetailsFragment extends Fragment {
     private LinearLayout trailersLayout;
 
     private TextView userReviewsText;
-    private TextView movieTrailerText;
+    private TextView movieTrailersText;
+    private ImageView backdrop_image;
+    private ImageView poster;
+    private TextView releaseDate;
+    private TextView userRating;
+    private TextView overview;
     private String trailerKey;
     private List<String> trailerKeys;
+
+    private Context mContext;
 
     public MovieDetailsFragment() {
         setHasOptionsMenu(true);
     }
 
+    public interface ReloadCallback {
+        void deleteItem();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
-        ImageView backdrop_image = (ImageView) rootView.findViewById(R.id.backdrop_image);
-        ImageView poster = (ImageView) rootView.findViewById(R.id.movie_poster_image);
-        TextView releaseDate = (TextView) rootView.findViewById(R.id.release_date);
-        TextView userRating = (TextView) rootView.findViewById(R.id.user_rating);
-        TextView overview = (TextView) rootView.findViewById(R.id.movie_overview);
+        backdrop_image = (ImageView) rootView.findViewById(R.id.backdrop_image);
+        poster = (ImageView) rootView.findViewById(R.id.movie_poster_image);
+        releaseDate = (TextView) rootView.findViewById(R.id.release_date);
+        userRating = (TextView) rootView.findViewById(R.id.user_rating);
+        overview = (TextView) rootView.findViewById(R.id.movie_overview);
         reviewsLayout = (LinearLayout) rootView.findViewById(R.id.reviews);
         trailersLayout = (LinearLayout) rootView.findViewById(R.id.trailers);
         userReviewsText = (TextView) rootView.findViewById(R.id.user_reviews);
-        movieTrailerText = (TextView) rootView.findViewById(R.id.movie_trailers);
-        Bundle bundle = getActivity().getIntent().getExtras();
-        isDataFromDB = bundle.getBoolean("isDataFromDB", false);
-        int imageWidth = Util.getImageWidth(getContext());
-        int imageHeight = (int) (imageWidth / 0.66);
+        movieTrailersText = (TextView) rootView.findViewById(R.id.movie_trailers);
 
-        movieID = bundle.getInt("movieID", 0);
-        Cursor cursor = null;
-        if (movieID != 0) {
-            Uri uri = TMDB_Contract.FavouriteMoviesEntry.buildFavouriteMoviesUri(movieID);
-            cursor = getContext().getContentResolver().query(uri, null, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst() && !isDataFromDB) {
-                    isDataFromDB = true;
+        mContext = getContext();
+
+        Bundle bundle = getArguments();
+
+        if (bundle != null) {
+            isDataFromDB = bundle.getBoolean("isDataFromDB", false);
+            movieID = bundle.getInt("movieID", 0);
+
+            int imageWidth = Util.getImageWidth(mContext);
+            int imageHeight = (int) (imageWidth / 0.66);
+
+            Cursor cursor = null;
+            if (movieID != 0) {
+                Uri uri = TMDB_Contract.FavouriteMoviesEntry.buildFavouriteMoviesUri(movieID);
+                cursor = mContext.getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst() && !isDataFromDB) {
+                        isDataFromDB = true;
+                    }
                 }
             }
-        }
-        if (!isDataFromDB) {
-            movieModel = bundle.getParcelable("movieDetails");
+            if (!isDataFromDB) {
+                movieModel = bundle.getParcelable("movieDetails");
 
-            Log.v(LOG_TAG, "Setting required views for movie details...");
+                // imgw,imgh, posterP,bckP,rd,voavg
+                Log.v(LOG_TAG, "Setting required views for movie details...");
+                Picasso.with(mContext)
+                        .load(movieModel.getBackdrop_path())
+                        .into(backdrop_image);
 
-            Picasso.with(getContext())
-                    .load(movieModel.getBackdrop_path())
-                    .into(backdrop_image);
-
-            Picasso.with(getContext())
-                    .load(movieModel.getPosterPath())
-                    .resize(imageWidth, imageHeight)
-                    .into(poster);
-
-            releaseDate.setText(movieModel.getReleaseDate());
-
-            userRating.setText(movieModel.getVoteAverage() + "/10");
-
-            overview.setTextAppearance(getContext(), android.R.style.TextAppearance_Medium);
-            Typeface typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
-            overview.setTypeface(typeface);
-            overview.setText(movieModel.getOverview());
-
-            movieID = movieModel.getId();
-            movieName = movieModel.getOriginalTitle();
-        } else {
-            if (cursor != null) {
-                int releaseDateIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_RELEASE_DATE);
-                String movieReleaseDate = cursor.getString(releaseDateIndex);
-                releaseDate.setText(movieReleaseDate);
-
-                int voteAvgIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_VOTE_AVG);
-                Double voteAvg = cursor.getDouble(voteAvgIndex);
-                userRating.setText(voteAvg + "/10");
-
-                int movieNameIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_NAME);
-                movieName = cursor.getString(movieNameIndex);
-
-                int overviewIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_SYNOPSIS);
-                String synopsis = cursor.getString(overviewIndex);
-                overview.setTextAppearance(getContext(), android.R.style.TextAppearance_Medium);
-                Typeface typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
-                overview.setTypeface(typeface);
-                overview.setText(synopsis);
-
-                String path = getContext().getFilesDir().getAbsolutePath();
-                Picasso.with(getContext())
-                        .load("file:" + path + "/" + movieID + ".jpg")
+                Picasso.with(mContext)
+                        .load(movieModel.getPosterPath())
                         .resize(imageWidth, imageHeight)
                         .into(poster);
 
-                Picasso.with(getContext())
-                        .load("file:" + path + "/" + movieID + "_backdrop.jpg")
-                        .into(backdrop_image);
+                releaseDate.setText(movieModel.getReleaseDate());
 
-                cursor.close();
-                setMovieReviewsFromDB(movieID);
-                setMovieTrailersFromDB(movieID);
+                userRating.setText(movieModel.getVoteAverage() + "/10");
+
+                overview.setTextAppearance(mContext, android.R.style.TextAppearance_Medium);
+                Typeface typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
+                overview.setTypeface(typeface);
+                overview.setText(movieModel.getOverview());
+
+                movieID = movieModel.getId();
+                movieName = movieModel.getOriginalTitle();
+            } else {
+                if (cursor != null) {
+                    int releaseDateIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_RELEASE_DATE);
+                    String movieReleaseDate = cursor.getString(releaseDateIndex);
+                    releaseDate.setText(movieReleaseDate);
+
+                    int voteAvgIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_VOTE_AVG);
+                    Double voteAvg = cursor.getDouble(voteAvgIndex);
+                    userRating.setText(voteAvg + "/10");
+
+                    int movieNameIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_NAME);
+                    movieName = cursor.getString(movieNameIndex);
+
+                    int overviewIndex = cursor.getColumnIndex(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_SYNOPSIS);
+                    String synopsis = cursor.getString(overviewIndex);
+                    overview.setTextAppearance(mContext, android.R.style.TextAppearance_Medium);
+                    Typeface typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
+                    overview.setTypeface(typeface);
+                    overview.setText(synopsis);
+
+                    String path = mContext.getFilesDir().getAbsolutePath();
+                    Picasso.with(mContext)
+                            .load("file:" + path + "/" + movieID + ".jpg")
+                            .resize(imageWidth, imageHeight)
+                            .into(poster);
+
+                    String posterPath = "file:" + path + "/" + movieID + ".jpg";
+                    String backdrop_Path = "file:" + path + "/" + movieID + "_backdrop.jpg";
+                    Picasso.with(mContext)
+                            .load("file:" + path + "/" + movieID + "_backdrop.jpg")
+                            .into(backdrop_image);
+
+                    cursor.close();
+                    setMovieReviewsFromDB(movieID);
+                    setMovieTrailersFromDB(movieID);
+                }
             }
         }
+
         return rootView;
     }
 
-
     private void setMovieTrailersFromDB(int movieID) {
         Uri uri = TMDB_Contract.TrailersEntry.buildTrailersUri(movieID);
-        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 
         if (cursor != null) {
             trailerKeys = new ArrayList<>();
-            movieTrailerText.setText(getString(R.string.trailers) + " (" + cursor.getCount() + ")");
+            movieTrailersText.setText(getString(R.string.trailers) + " (" + cursor.getCount() + ")");
             while (cursor.moveToNext()) {
                 int trailerKeyIndex = cursor.getColumnIndex(TMDB_Contract.TrailersEntry.COLUMN_TRAILER_KEY);
                 final String trailerDBKey = cursor.getString(trailerKeyIndex);
-                ImageView imageView = new ImageView(getContext());
+                ImageView imageView = new ImageView(mContext);
                 imageView.setAdjustViewBounds(true);
                 imageView.setPadding(0, 0, 8, 0);
                 imageView.setAdjustViewBounds(true);
-                String path = getContext().getFilesDir().getAbsolutePath();
-                Picasso.with(getContext())
+                String path = mContext.getFilesDir().getAbsolutePath();
+                Picasso.with(mContext)
                         .load("file:" + path + "/" + movieID + "_" + trailerDBKey + ".jpg")
                         .resize(300, 450)
                         .into(imageView);
@@ -214,7 +233,7 @@ public class MovieDetailsFragment extends Fragment {
 
     private void setMovieReviewsFromDB(int movieID) {
         Uri uri = TMDB_Contract.ReviewsEntry.buildReviewsUri(movieID);
-        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 
         if (cursor != null && cursor.getCount() > 0) {
             userReviewsText.setText(getString(R.string.userReviews) + " (" + cursor.getCount() + ")");
@@ -222,25 +241,25 @@ public class MovieDetailsFragment extends Fragment {
                 int authorIndex = cursor.getColumnIndex(TMDB_Contract.ReviewsEntry.COLUMN_REVIEW_AUTHOR);
                 String author = cursor.getString(authorIndex);
 
-                TextView textView = new TextView(getContext());
+                TextView textView = new TextView(mContext);
                 textView.setText(author);
                 textView.setPadding(16, 16, 16, 16);
-                textView.setTextAppearance(getContext(), android.R.style.TextAppearance_Medium);
+                textView.setTextAppearance(mContext, android.R.style.TextAppearance_Medium);
                 Typeface typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
                 textView.setTypeface(typeface);
                 reviewsLayout.addView(textView);
 
                 int contentIndex = cursor.getColumnIndex(TMDB_Contract.ReviewsEntry.COLUMN_REVIEW_CONTENT);
                 String content = cursor.getString(contentIndex);
-                textView = new TextView(getContext());
+                textView = new TextView(mContext);
                 textView.setText(content);
                 textView.setPadding(16, 16, 16, 16);
-                textView.setTextAppearance(getContext(), android.R.style.TextAppearance_Holo_Medium);
+                textView.setTextAppearance(mContext, android.R.style.TextAppearance_Holo_Medium);
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
                 textView.setTypeface(typeface);
                 reviewsLayout.addView(textView);
 
-                View view = new View(getContext());
+                View view = new View(mContext);
                 view.setMinimumHeight(3);
 
                 view.setBackgroundColor(Color.DKGRAY);
@@ -254,52 +273,61 @@ public class MovieDetailsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        favouriteButton = (FloatingActionButton) getActivity().findViewById(R.id.image_favourite);
-        if (!isDataFromDB) {
-            ReviewsAndTrailersTask reviewsAndTrailersTask = new ReviewsAndTrailersTask();
-            reviewsAndTrailersTask.execute();
-        }
-        if (isDataFromDB) {
-            addOrRemoveFromDB = true;
-            favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
-        }
-        favouriteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ColorStateList colorStateList = favouriteButton.getBackgroundTintList();
-                int defaultColor = colorStateList !=null ? colorStateList.getDefaultColor():0;
-                boolean flag = false;
-                if (defaultColor == Color.BLUE) {
-                    flag = true;
-                    //favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-                }
-                favouriteButtonClicked = true;
-                if (!addOrRemoveFromDB && !isDataFromDB) {
-                    addOrRemoveFromDB = true;
-                    favouriteButton.setImageDrawable(ContextCompat.getDrawable(getContext(),R.drawable.ic_star_black_18dp));
-                    favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
-                    Toast.makeText(getContext(), "Added to Favourite", Toast.LENGTH_SHORT).show();
-                } else {
-                    addOrRemoveFromDB = false;
-                    if (isDataFromDB) {
-                        // if data is from DB i.e movie is already favourite
-                        // then only it make sense to remove it.
-                        if (!flag) {
-                            favouriteButton.setImageDrawable(ContextCompat.getDrawable(getContext(),R.drawable.ic_star_off_white_18dp));
-                            favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.BLUE));
-                            Toast.makeText(getContext(), "Removed from Favourite", Toast.LENGTH_SHORT).show();
-                        } else {
-                            addOrRemoveFromDB = true;
-                            favouriteButton.setImageDrawable(ContextCompat.getDrawable(getContext(),R.drawable.ic_star_black_18dp));
-                            favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
-                        }
+        if (getArguments() != null) {
+            favouriteButton = (FloatingActionButton) getActivity().findViewById(R.id.favouriteFAB);
+            if (!isDataFromDB) {
+                ReviewsAndTrailersTask reviewsAndTrailersTask = new ReviewsAndTrailersTask();
+                if (movieID > 0)
+                    reviewsAndTrailersTask.execute();
+                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+            }
+            if (isDataFromDB) {
+                addOrRemoveFromDB = true;
+                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+            }
+            favouriteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ColorStateList colorStateList = favouriteButton.getBackgroundTintList();
+                    int defaultColor = colorStateList != null ? colorStateList.getDefaultColor() : 0;
+                    boolean flag = false;
+                    if (defaultColor == Color.BLUE) {
+                        flag = true;
+                        //favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                    }
+                    favouriteButtonClicked = true;
+                    if (!addOrRemoveFromDB && !isDataFromDB) {
+                        addOrRemoveFromDB = true;
+                        favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
+                        favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+                        Toast.makeText(mContext, "Added to Favourite", Toast.LENGTH_SHORT).show();
                     } else {
-                        // set to original color, user does not want to add to favourite for now
-                        favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+                        addOrRemoveFromDB = false;
+                        if (isDataFromDB) {
+                            // if data is from DB i.e movie is already favourite
+                            // then only it make sense to remove it.
+                            if (!flag) {
+                                favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_off_white_18dp));
+                                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.BLUE));
+                                Toast.makeText(mContext, "Removed from Favourite", Toast.LENGTH_SHORT).show();
+                                if (Util.isMultiPane) {
+                                    deleteFromDB();
+                                    ((ReloadCallback) getActivity()).deleteItem();
+                                }
+
+                            } else {
+                                addOrRemoveFromDB = true;
+                                favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
+                                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+                            }
+                        } else {
+                            // set to original color, user does not want to add to favourite for now
+                            favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
     }
 
@@ -333,15 +361,15 @@ public class MovieDetailsFragment extends Fragment {
             mShareActionProvider.setShareIntent(createShareTrailerIntent());
         }
 
-        TextView movieTrailersText = (TextView) getActivity().findViewById(R.id.movie_trailers);
+
         movieTrailersText.setText(getString(R.string.trailers) + " (" + trailersList.size() + ")");
         for (final Trailers trailer : trailersList) {
-            ImageView imageView = new ImageView(getContext());
+            ImageView imageView = new ImageView(mContext);
             imageView.setAdjustViewBounds(true);
             imageView.setPadding(0, 0, 8, 0);
             String video_thumbnail = "http://img.youtube.com/vi/" + trailer.getKey() + "/0.jpg";
             imageView.setAdjustViewBounds(true);
-            Picasso.with(getContext())
+            Picasso.with(mContext)
                     .load(video_thumbnail)
                     .resize(300, 450)
                     .into(imageView);
@@ -359,36 +387,35 @@ public class MovieDetailsFragment extends Fragment {
         }
     }
 
-
     private void setMovieReviews(List<Reviews> movieReviews) {
 
-        LinearLayout reviewsLayout = (LinearLayout) getActivity().findViewById(R.id.reviews);
-        TextView userReviewsText = (TextView) getActivity().findViewById(R.id.user_reviews);
-        userReviewsText.setText(getString(R.string.userReviews) + " (" + movieReviews.size() + ")");
+        int reviewsSize = (movieReviews != null) ? movieReviews.size() : 0;
+        userReviewsText.setText(getString(R.string.userReviews) + " (" + reviewsSize + ")");
         for (Reviews review : movieReviews) {
-            TextView textView = new TextView(getContext());
+            TextView textView = new TextView(mContext);
             textView.setText(review.getAuthor());
             textView.setPadding(16, 16, 16, 16);
-            textView.setTextAppearance(getContext(), android.R.style.TextAppearance_Medium);
+            textView.setTextAppearance(mContext, android.R.style.TextAppearance_Medium);
             Typeface typeface = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
             textView.setTypeface(typeface);
             reviewsLayout.addView(textView);
 
-            textView = new TextView(getContext());
+            textView = new TextView(mContext);
             textView.setText(review.getContent());
             textView.setPadding(16, 16, 16, 16);
-            textView.setTextAppearance(getContext(), android.R.style.TextAppearance_Holo_Medium);
+            textView.setTextAppearance(mContext, android.R.style.TextAppearance_Holo_Medium);
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
             textView.setTypeface(typeface);
             reviewsLayout.addView(textView);
 
-            View view = new View(getContext());
+            View view = new View(mContext);
             view.setMinimumHeight(3);
-            view.setBackgroundColor(ContextCompat.getColor(getContext(),android.R.color.darker_gray));
+            view.setBackgroundColor(ContextCompat.getColor(mContext, android.R.color.darker_gray));
             view.setPadding(8, 8, 8, 8);
             reviewsLayout.addView(view);
         }
     }
+
 
     Target posterTarget = new Target() {
         @Override
@@ -399,7 +426,7 @@ public class MovieDetailsFragment extends Fragment {
                 String imageName;
                 imageName = String.valueOf(movieID) + ".jpg";
                 Log.d("Target: ", imageName);
-                outputStream = getActivity().openFileOutput(imageName, Context.MODE_PRIVATE);
+                outputStream = mContext.openFileOutput(imageName, Context.MODE_PRIVATE);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream);
                 outputStream.close();
             } catch (IOException e) {
@@ -426,7 +453,7 @@ public class MovieDetailsFragment extends Fragment {
                 String imageName;
                 imageName = String.valueOf(movieID) + "_backdrop.jpg";
                 Log.d("Target: ", imageName);
-                outputStream = getActivity().openFileOutput(imageName, Context.MODE_PRIVATE);
+                outputStream = mContext.openFileOutput(imageName, Context.MODE_PRIVATE);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream);
                 outputStream.close();
             } catch (IOException e) {
@@ -453,10 +480,10 @@ public class MovieDetailsFragment extends Fragment {
                 String imageName;
                 imageName = String.valueOf(movieID) + "_" + trailerKey + ".jpg";
                 Log.d("Target: ", imageName);
-                outputStream = getActivity().openFileOutput(imageName, Context.MODE_PRIVATE);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream);
+                outputStream = mContext.openFileOutput(imageName, Context.MODE_PRIVATE);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
                 outputStream.close();
-            }catch (IOException e) {
+            } catch (IOException e) {
                 Log.e(LOG_TAG, e.getMessage());
             }
         }
@@ -478,16 +505,46 @@ public class MovieDetailsFragment extends Fragment {
         super.onStop();
     }
 
+    private void deleteFromDB() {
+
+        Cursor cursor = mContext.getContentResolver()
+                .query(TMDB_Contract.FavouriteMoviesEntry.CONTENT_URI,
+                        null,null,null,null);
+        Util.counter = cursor.getCount();
+        mContext.getContentResolver()
+                .delete(TMDB_Contract.ReviewsEntry.CONTENT_URI,
+                        TMDB_Contract.ReviewsEntry.COLUMN_REVIEW_MOVIE_ID + "=?",
+                        new String[]{String.valueOf(movieID)});
+
+        mContext.getContentResolver()
+                .delete(TMDB_Contract.TrailersEntry.CONTENT_URI,
+                        TMDB_Contract.TrailersEntry.COLUMN_TRAILER_MOVIE_ID + "=?",
+                        new String[]{String.valueOf(movieID)});
+
+        mContext.getContentResolver()
+                .delete(TMDB_Contract.FavouriteMoviesEntry.CONTENT_URI,
+                        TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_ID + "=?",
+                        new String[]{String.valueOf(movieID)});
+
+        //remove the image from the internal storage
+        mContext.deleteFile(movieID + ".jpg");
+        mContext.deleteFile(movieID + "_backdrop.jpg");
+        for (String trailerKey : trailerKeys) {
+            mContext.deleteFile(movieID + "_" + trailerKey + ".jpg");
+        }
+        favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
+        Util.isDataChanged = true;
+    }
+
     @Override
     public void onPause() {
         super.onPause();
         if (favouriteButtonClicked) {
             // then only perform the DB operation otherwise every time it will go to else part
-            String filePath = getContext().getFilesDir().getAbsolutePath();
+            String filePath = mContext.getFilesDir().getAbsolutePath();
             if (addOrRemoveFromDB) {
                 if (!isDataFromDB) {
                     //add to the favourite DB
-
                     ContentValues movieContentValues = new ContentValues();
                     movieContentValues.put(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_ID, movieID);
                     movieContentValues.put(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_NAME, movieModel.getOriginalTitle());
@@ -499,15 +556,15 @@ public class MovieDetailsFragment extends Fragment {
                     movieContentValues.put(TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_POSTER_IMAGE_PATH, filePath);
 
 
-                    Picasso.with(getContext())
+                    Picasso.with(mContext)
                             .load(movieModel.getPosterPath())
                             .into(posterTarget);
-                    Picasso.with(getContext())
+                    Picasso.with(mContext)
                             .load(movieModel.getBackdrop_path())
                             .into(backdropTarget);
 
+                    mContext.getContentResolver().insert(TMDB_Contract.FavouriteMoviesEntry.CONTENT_URI, movieContentValues);
 
-                    getContext().getContentResolver().insert(TMDB_Contract.FavouriteMoviesEntry.CONTENT_URI, movieContentValues);
                     Vector<ContentValues> reviewContentValuesVector = new Vector<>(reviews.size());
                     for (Reviews review : reviews) {
                         ContentValues reviewContentValues = new ContentValues();
@@ -521,7 +578,7 @@ public class MovieDetailsFragment extends Fragment {
                     if (reviewContentValuesVector.size() > 0) {
                         ContentValues[] cvArray = new ContentValues[reviewContentValuesVector.size()];
                         reviewContentValuesVector.toArray(cvArray);
-                        int inserted = getContext().getContentResolver().bulkInsert(TMDB_Contract.ReviewsEntry.CONTENT_URI, cvArray);
+                        mContext.getContentResolver().bulkInsert(TMDB_Contract.ReviewsEntry.CONTENT_URI, cvArray);
                     }
 
                     Vector<ContentValues> trailerContentValuesVector = new Vector<>(trailers.size());
@@ -535,7 +592,7 @@ public class MovieDetailsFragment extends Fragment {
                         trailerContentValuesVector.add(trailerContentValues);
                         trailerKey = trailer.getKey();
                         String video_thumbnail = "http://img.youtube.com/vi/" + trailerKey + "/0.jpg";
-                        Picasso.with(getContext())
+                        Picasso.with(mContext)
                                 .load(video_thumbnail)
                                 .resize(300, 450)
                                 .into(trailerTarget);
@@ -543,7 +600,7 @@ public class MovieDetailsFragment extends Fragment {
                     if (trailerContentValuesVector.size() > 0) {
                         ContentValues[] cvArray = new ContentValues[trailerContentValuesVector.size()];
                         trailerContentValuesVector.toArray(cvArray);
-                        int inserted = getContext().getContentResolver().bulkInsert(TMDB_Contract.TrailersEntry.CONTENT_URI, cvArray);
+                        mContext.getContentResolver().bulkInsert(TMDB_Contract.TrailersEntry.CONTENT_URI, cvArray);
                     }
                     // since the movie is added to DB now,make this flag true
                     // so even if onPause gets called multiple times, there won't
@@ -551,30 +608,9 @@ public class MovieDetailsFragment extends Fragment {
                     isDataFromDB = true;
                 }
             } else {
-                if (isDataFromDB) {
+                if (isDataFromDB && !Util.isMultiPane) {
                     // remove from favourite DB
-                    getContext().getContentResolver()
-                            .delete(TMDB_Contract.ReviewsEntry.CONTENT_URI,
-                                    TMDB_Contract.ReviewsEntry.COLUMN_REVIEW_MOVIE_ID + "=?",
-                                    new String[]{String.valueOf(movieID)});
-
-                    getContext().getContentResolver()
-                            .delete(TMDB_Contract.TrailersEntry.CONTENT_URI,
-                                    TMDB_Contract.TrailersEntry.COLUMN_TRAILER_MOVIE_ID + "=?",
-                                    new String[]{String.valueOf(movieID)});
-
-                    getContext().getContentResolver()
-                            .delete(TMDB_Contract.FavouriteMoviesEntry.CONTENT_URI,
-                                    TMDB_Contract.FavouriteMoviesEntry.COLUMN_MOVIE_ID + "=?",
-                                    new String[]{String.valueOf(movieID)});
-
-                    //remove the image from the internal storage
-                    getContext().deleteFile(movieID + ".jpg");
-                    getContext().deleteFile(movieID + "_backdrop.jpg");
-                    for (String trailerKey : trailerKeys) {
-                        getContext().deleteFile(movieID + "_" + trailerKey + ".jpg");
-                    }
-                    Util.isDataChanged = true;
+                   deleteFromDB();
                 }
             }
         }
@@ -605,9 +641,10 @@ public class MovieDetailsFragment extends Fragment {
             if (reviewsAndTrailersMap != null) {
                 reviews = (List<Reviews>) reviewsAndTrailersMap.get("reviews");
                 trailers = (List<Trailers>) reviewsAndTrailersMap.get("trailers");
-
-                setMovieReviews(reviews);
-                setMovieTrailers(trailers);
+                if (isAdded()) {
+                    setMovieReviews(reviews);
+                    setMovieTrailers(trailers);
+                }
 
             }
         }
