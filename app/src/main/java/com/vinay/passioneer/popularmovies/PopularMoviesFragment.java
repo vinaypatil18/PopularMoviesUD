@@ -31,15 +31,13 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     private MovieAdapter movieAdapter;
     private FavouriteMoviesAdapter mFavouriteMoviesAdapter;
     private ArrayList<MovieModel> movieModelList;
-    private static final String LOG_TAG = PopularMoviesFragment.class.getSimpleName();
+    private static final String TAG = PopularMoviesFragment.class.getSimpleName();
     private String sortByValue;
     private boolean isFavourite = false;
     private int mPosition = GridView.INVALID_POSITION;
     private static final int CURSOR_LOADER_ID = 0;
+    private static final String SELECTED_KEY = "selected_position";
     private PopularMovieViewHolder movieViewHolder;
-
-
-
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -73,7 +71,7 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.v(LOG_TAG, "Saving Instance");
+        Log.v(TAG, "Saving Instance");
         outState.putParcelableArrayList("popularMovies", movieModelList);
         super.onSaveInstanceState(outState);
     }
@@ -94,7 +92,7 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     public void updatePopularMovies(String sortByValue) {
         this.sortByValue = sortByValue;
         FetchPopularMoviesTask popularMoviesTask = new FetchPopularMoviesTask();
-        Log.v(LOG_TAG, "Fetching Popular Movies....");
+        Log.v(TAG, "Fetching Popular Movies....");
         popularMoviesTask.execute();
     }
 
@@ -116,6 +114,7 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
         if (isFavourite) {
             Cursor cursor = getActivity()
                     .getContentResolver()
@@ -158,7 +157,17 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
 
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
+    }
+
     private void setFavouriteMovieAdapter() {
+        Log.d(TAG, "setFavouriteMovieAdapter: ");
         int actualPosterViewWidth = Util.getImageWidth(getContext());
         mFavouriteMoviesAdapter = new FavouriteMoviesAdapter(getContext(), null, 0, actualPosterViewWidth);
         movieViewHolder.gridview.setAdapter(mFavouriteMoviesAdapter);
@@ -182,8 +191,10 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
     }
 
     private void setMovieAdapter(List<MovieModel> movieModelList) {
+        Log.d(TAG, "setMovieAdapter: ");
         int actualPosterViewWidth = Util.getImageWidth(getContext());
-        movieAdapter = new MovieAdapter(getActivity(), actualPosterViewWidth, movieModelList);
+        if (movieAdapter == null)
+            movieAdapter = new MovieAdapter(getActivity(), actualPosterViewWidth, movieModelList);
         movieViewHolder.gridview.setAdapter(movieAdapter);
         movieViewHolder.gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
@@ -197,9 +208,11 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
                 mPosition = position;
             }
         });
+
     }
 
     public void showFavouriteMovies() {
+        Log.d(TAG, "showFavouriteMovies: ");
         Util.isDataChanged = true;
         restartLoader();
         setFavouriteMovieAdapter();
@@ -217,8 +230,12 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (mFavouriteMoviesAdapter != null)
+        if (mFavouriteMoviesAdapter != null) {
             mFavouriteMoviesAdapter.swapCursor(data);
+            if (mPosition != GridView.INVALID_POSITION) {
+                movieViewHolder.gridview.smoothScrollToPosition(mPosition);
+            }
+        }
     }
 
     @Override
@@ -236,7 +253,7 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         protected List<MovieModel> doInBackground(Void... sortByParams) {
-
+            Log.d(TAG, "doInBackground: Fetch Movies Data");
             List<MovieModel> results = null;
             final String SORT_ORDER = ".desc";
             String sortBy = sortByValue + SORT_ORDER;
@@ -261,7 +278,7 @@ public class PopularMoviesFragment extends Fragment implements LoaderManager.Loa
                 } else {
                     Log.v(LOG_TAG, "Adding movie metadata to adapter");
                     movieAdapter.clear();
-                    //movieAdapter.addAll(movieModels);
+                    movieAdapter.addAll(movieModels);
                     setMovieAdapter(movieModels);
                 }
                 MovieAdapter.cnt = 0;

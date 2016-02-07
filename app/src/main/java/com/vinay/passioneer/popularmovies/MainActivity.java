@@ -7,14 +7,16 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.facebook.stetho.Stetho;
 
-public class MainActivity extends AppCompatActivity implements PopularMoviesFragment.TMDB_Callback, MovieDetailsFragment.ReloadCallback {
+public class MainActivity extends AppCompatActivity implements PopularMoviesFragment.TMDB_Callback, MovieDetailsFragment.ReloadFavouriteMoviesCallback {
 
     private static final String MOVIE_DETAIL_FRAGMENT_TAG = "TMDB_DETAIL_TAG";
+    private static final String TAG = MainActivity.class.getSimpleName();
     private boolean mTwoPane;
     private String mSortBy;
 
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
             // in two-pane mode.
+            Log.v(TAG, "Creating Multi-Pane Layout");
             mTwoPane = true;
             Util.isMultiPane = true;
             // In two-pane mode, show the detail view in this activity by
@@ -87,11 +90,13 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
                     } else {
                         getSupportActionBar().setTitle(R.string.tile_popular_movies);
                     }
+                    Util.isFavouriteScreen = false;
                     popularMoviesFragment.updatePopularMovies(sortBy);
                 } else {
                     //View view = LayoutInflater.from(this).inflate(R.layout.fragment_main, null);
                     //popularMoviesFragment.updateFavouriteMovies(view);
                     getSupportActionBar().setTitle(R.string.tile_favourite_movies);
+                    Util.isFavouriteScreen = true;
                     popularMoviesFragment.showFavouriteMovies();
                 }
             }
@@ -101,12 +106,13 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
 
     @Override
     public void onItemSelected(Bundle bundle) {
+        Log.d(TAG, "onItemSelected: ");
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
 
-
+            Log.d(TAG, "onItemSelected: Replacing Detail Fragment");
             MovieDetailsFragment fragment = new MovieDetailsFragment();
             fragment.setArguments(bundle);
 
@@ -120,19 +126,23 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
         }
     }
 
+    
     @Override
-    public void deleteItem() {
+    public void reloadFavouriteMovies() {
+        Log.d(TAG, "reloadFavouriteMovies: ");
         PopularMoviesFragment popularMoviesFragment =
                 (PopularMoviesFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.fragment_popular_movies);
 
         popularMoviesFragment.restartLoader();
 
-        if(Util.counter == 1) {
+        // this means no favourite movies are present now
+        // so show the default detail fragment
+        if (Util.counter == 1) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.movie_detail_container, new MovieDetailsFragment(), MOVIE_DETAIL_FRAGMENT_TAG)
                     .commit();
-            FloatingActionButton floatingActionButton = (FloatingActionButton)findViewById(R.id.favouriteFAB);
+            FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.favouriteFAB);
             floatingActionButton.setClickable(false);
             floatingActionButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
         }
