@@ -19,6 +19,7 @@ public class Util {
     public static boolean isDataChanged = false;
     public static boolean isMultiPane = false;
     public static int counter = 0;
+    public static boolean isFavouriteScreen = false;
     /**
      * calculate the screen width and image/grid width
      * @param context
