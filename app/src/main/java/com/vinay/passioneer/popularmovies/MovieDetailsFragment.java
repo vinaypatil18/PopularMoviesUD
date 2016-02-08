@@ -92,6 +92,7 @@ public class MovieDetailsFragment extends Fragment {
         public TextView releaseDate;
         public TextView userRating;
         public TextView overview;
+        public TextView movieTitle;
 
         public MovieDetailViewHolder(View rootView) {
             backdrop_image = (ImageView) rootView.findViewById(R.id.backdrop_image);
@@ -103,6 +104,7 @@ public class MovieDetailsFragment extends Fragment {
             trailersLayout = (LinearLayout) rootView.findViewById(R.id.trailers);
             userReviewsText = (TextView) rootView.findViewById(R.id.user_reviews);
             movieTrailersText = (TextView) rootView.findViewById(R.id.movie_trailers);
+            movieTitle = (TextView) rootView.findViewById(R.id.movie_title);
         }
     }
 
@@ -145,8 +147,8 @@ public class MovieDetailsFragment extends Fragment {
             if (!isDataFromDB) {
                 movieModel = bundle.getParcelable("movieDetails");
                 Log.v(TAG, "Setting required views for movie details...");
-                setMovieDetails(movieModel.getBackdrop_path(), movieModel.getPosterPath(),
-                        movieModel.getReleaseDate(), movieModel.getVoteAverage(),
+                setMovieDetails(movieModel.getOriginalTitle(), movieModel.getBackdrop_path(),
+                        movieModel.getPosterPath(), movieModel.getReleaseDate(), movieModel.getVoteAverage(),
                         movieModel.getOverview(), imageHeight, imageWidth);
                 movieID = movieModel.getId();
                 movieName = movieModel.getOriginalTitle();
@@ -176,14 +178,14 @@ public class MovieDetailsFragment extends Fragment {
             String posterPath = "file:" + path + "/" + movieID + ".jpg";
             String backdrop_Path = "file:" + path + "/" + movieID + "_backdrop.jpg";
 
-            setMovieDetails(backdrop_Path, posterPath, movieReleaseDate, voteAvg, synopsis, imageHeight, imageWidth);
+            setMovieDetails(movieName,backdrop_Path, posterPath, movieReleaseDate, voteAvg, synopsis, imageHeight, imageWidth);
             cursor.close();
             setMovieReviewsFromDB(movieID);
             setMovieTrailersFromDB(movieID);
         }
     }
 
-    private void setMovieDetails(String backdrop_path, String posterPath, String releaseDate,
+    private void setMovieDetails(String movieName, String backdrop_path, String posterPath, String releaseDate,
                                  Double voteAverage, String overview, int imageHeight, int imageWidth) {
         Log.d(TAG, "setMovieDetails: ");
         Picasso.with(getContext())
@@ -197,12 +199,14 @@ public class MovieDetailsFragment extends Fragment {
 
         detailViewHolder.releaseDate.setText(releaseDate);
 
-        detailViewHolder.userRating.setText(voteAverage + "/10");
+        detailViewHolder.userRating.setText(voteAverage + " / 10");
 
         detailViewHolder.overview.setTextAppearance(getContext(), android.R.style.TextAppearance_Medium);
         Typeface typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL);
         detailViewHolder.overview.setTypeface(typeface);
         detailViewHolder.overview.setText(overview);
+
+        detailViewHolder.movieTitle.setText(movieName);
 
     }
 

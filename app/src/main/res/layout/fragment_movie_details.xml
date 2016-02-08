@@ -22,15 +22,17 @@
             android:maxHeight="400dp"
             android:scaleType="fitXY" />
 
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="2">
 
+
             <ImageView
                 android:id="@+id/movie_poster_image"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:paddingLeft="@dimen/dimen_24"
                 android:paddingRight="@dimen/dimen_24"
                 android:paddingTop="@dimen/dimen_16" />
@@ -39,23 +41,53 @@
                 android:id="@+id/user_rating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="@dimen/dimen_48"
+                android:layout_marginTop="@dimen/dimen_48"
+                android:layout_toRightOf="@id/movie_poster_image"
+                android:fontFamily="sans-serif-condensed"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/user_rating"
+                android:layout_marginRight="@dimen/dimen_8"
                 android:layout_marginTop="@dimen/dimen_16"
                 android:layout_toRightOf="@id/movie_poster_image"
-                android:gravity="right"
-                android:textAppearance="?android:textAppearanceLarge" />
+                android:text="TITLE : "
+                android:textAppearance="?android:textAppearanceMedium"
+                android:textColor="@android:color/holo_red_dark" />
+
+            <TextView
+                android:id="@+id/movie_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/user_rating"
+                android:layout_marginTop="@dimen/dimen_16"
+                android:layout_toRightOf="@id/titleText"
+                android:fontFamily="sans-serif-condensed"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/releaseText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/movie_title"
+                android:layout_marginRight="@dimen/dimen_8"
+                android:layout_marginTop="@dimen/dimen_16"
+                android:layout_toRightOf="@id/movie_poster_image"
+                android:text="RELEASE DATE : "
+                android:textAppearance="?android:textAppearanceMedium"
+                android:textColor="@android:color/holo_red_dark" />
 
             <TextView
                 android:id="@+id/release_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_below="@id/user_rating"
-                android:layout_marginRight="@dimen/dimen_48"
+                android:layout_below="@id/movie_title"
                 android:layout_marginTop="@dimen/dimen_16"
-                android:layout_toRightOf="@id/movie_poster_image"
-                android:gravity="right"
+                android:layout_toRightOf="@id/releaseText"
+                android:fontFamily="sans-serif-condensed"
                 android:textAppearance="?android:textAppearanceMedium" />
         </RelativeLayout>
 
