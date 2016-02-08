@@ -95,6 +95,10 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
                 } else {
                     //View view = LayoutInflater.from(this).inflate(R.layout.fragment_main, null);
                     //popularMoviesFragment.updateFavouriteMovies(view);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.movie_detail_container, new MovieDetailsFragment(), MOVIE_DETAIL_FRAGMENT_TAG)
+                            .commit();
+
                     getSupportActionBar().setTitle(R.string.tile_favourite_movies);
                     Util.isFavouriteScreen = true;
                     popularMoviesFragment.showFavouriteMovies();
