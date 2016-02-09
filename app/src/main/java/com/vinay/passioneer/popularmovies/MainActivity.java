@@ -2,9 +2,9 @@ package com.vinay.passioneer.popularmovies;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -150,7 +150,11 @@ public class MainActivity extends AppCompatActivity implements PopularMoviesFrag
                     .commit();
             FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.favouriteFAB);
             floatingActionButton.setClickable(false);
-            floatingActionButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+            floatingActionButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_star_white_18dp));
+            floatingActionButton.setBackgroundTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent))
+            );
+
         }
 
     }

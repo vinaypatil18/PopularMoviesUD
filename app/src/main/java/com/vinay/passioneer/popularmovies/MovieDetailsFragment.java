@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
@@ -62,7 +63,7 @@ public class MovieDetailsFragment extends Fragment {
     private boolean favouriteButtonClicked = false;
     private List<Reviews> reviews = new ArrayList<>();
     private List<Trailers> trailers = new ArrayList<>();
-    private FloatingActionButton favouriteButton;
+
     private MovieModel movieModel = new MovieModel();
     private String trailerKey;
     private List<String> trailerKeys;
@@ -93,8 +94,9 @@ public class MovieDetailsFragment extends Fragment {
         public TextView userRating;
         public TextView overview;
         public TextView movieTitle;
+        public FloatingActionButton favouriteButton;
 
-        public MovieDetailViewHolder(View rootView) {
+        public MovieDetailViewHolder(View rootView, FragmentActivity activity) {
             backdrop_image = (ImageView) rootView.findViewById(R.id.backdrop_image);
             poster = (ImageView) rootView.findViewById(R.id.movie_poster_image);
             releaseDate = (TextView) rootView.findViewById(R.id.release_date);
@@ -105,6 +107,7 @@ public class MovieDetailsFragment extends Fragment {
             userReviewsText = (TextView) rootView.findViewById(R.id.user_reviews);
             movieTrailersText = (TextView) rootView.findViewById(R.id.movie_trailers);
             movieTitle = (TextView) rootView.findViewById(R.id.movie_title);
+            favouriteButton = (FloatingActionButton) activity.findViewById(R.id.favouriteFAB);
         }
     }
 
@@ -113,9 +116,9 @@ public class MovieDetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         Bundle bundle = getArguments();
-        if(bundle != null) {
+        if (bundle != null) {
             View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
-            MovieDetailViewHolder viewHolder = new MovieDetailViewHolder(rootView);
+            MovieDetailViewHolder viewHolder = new MovieDetailViewHolder(rootView, getActivity());
             rootView.setTag(viewHolder);
 
             detailViewHolder = (MovieDetailViewHolder) rootView.getTag();
@@ -123,6 +126,9 @@ public class MovieDetailsFragment extends Fragment {
 
             updateView(bundle);
             return rootView;
+        } else {
+            FloatingActionButton floatingActionButton = (FloatingActionButton) getActivity().findViewById(R.id.favouriteFAB);
+            floatingActionButton.setClickable(false);
         }
         return new View(getContext());
     }
@@ -180,7 +186,7 @@ public class MovieDetailsFragment extends Fragment {
             String posterPath = "file:" + path + "/" + movieID + ".jpg";
             String backdrop_Path = "file:" + path + "/" + movieID + "_backdrop.jpg";
 
-            setMovieDetails(movieName,backdrop_Path, posterPath, movieReleaseDate, voteAvg, synopsis, imageHeight, imageWidth);
+            setMovieDetails(movieName, backdrop_Path, posterPath, movieReleaseDate, voteAvg, synopsis, imageHeight, imageWidth);
             cursor.close();
             setMovieReviewsFromDB(movieID);
             setMovieTrailersFromDB(movieID);
@@ -298,32 +304,38 @@ public class MovieDetailsFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (getArguments() != null) {
-            favouriteButton = (FloatingActionButton) getActivity().findViewById(R.id.favouriteFAB);
             if (!isDataFromDB) {
                 ReviewsAndTrailersTask reviewsAndTrailersTask = new ReviewsAndTrailersTask();
                 if (movieID > 0)
                     reviewsAndTrailersTask.execute();
-                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+                detailViewHolder.favouriteButton.setBackgroundTintList(
+                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.colorAccent))
+                );
             }
             if (isDataFromDB) {
                 addOrRemoveFromDB = true;
-                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+                detailViewHolder.favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_white_18dp));
+                detailViewHolder.favouriteButton.setBackgroundTintList(
+                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.colorGreen))
+                );
             }
-            favouriteButton.setOnClickListener(new View.OnClickListener() {
+            detailViewHolder.favouriteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ColorStateList colorStateList = favouriteButton.getBackgroundTintList();
+                    ColorStateList colorStateList = detailViewHolder.favouriteButton.getBackgroundTintList();
                     int defaultColor = colorStateList != null ? colorStateList.getDefaultColor() : 0;
                     boolean flag = false;
-                    if (defaultColor == Color.BLUE) {
+                    if (defaultColor == Color.rgb(183,28,28)) {
                         flag = true;
                         //favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
                     }
                     favouriteButtonClicked = true;
                     if (!addOrRemoveFromDB && !isDataFromDB) {
                         addOrRemoveFromDB = true;
-                        favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
-                        favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+                        detailViewHolder.favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_white_18dp));
+                        detailViewHolder.favouriteButton.setBackgroundTintList(
+                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.colorGreen))
+                        );
                         Toast.makeText(mContext, "Added to Favourite", Toast.LENGTH_SHORT).show();
                     } else {
                         addOrRemoveFromDB = false;
@@ -331,8 +343,8 @@ public class MovieDetailsFragment extends Fragment {
                             // if data is from DB i.e movie is already favourite
                             // then only it make sense to remove it.
                             if (!flag) {
-                                favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_off_white_18dp));
-                                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.BLUE));
+                                detailViewHolder.favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_off_white_18dp));
+                                detailViewHolder.favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(183,28,28)));
                                 Toast.makeText(mContext, "Removed from Favourite", Toast.LENGTH_SHORT).show();
                                 if (Util.isMultiPane && Util.isFavouriteScreen) {
                                     deleteFromDB();
@@ -341,12 +353,18 @@ public class MovieDetailsFragment extends Fragment {
 
                             } else {
                                 addOrRemoveFromDB = true;
-                                favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
-                                favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.CYAN));
+                                Toast.makeText(mContext, "Undo Remove Operation", Toast.LENGTH_SHORT).show();
+                                detailViewHolder.favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_white_18dp));
+                                detailViewHolder.favouriteButton.setBackgroundTintList(
+                                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.colorGreen))
+                                );
                             }
                         } else {
                             // set to original color, user does not want to add to favourite for now
-                            favouriteButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+                            Toast.makeText(mContext, "Undo Add Operation", Toast.LENGTH_SHORT).show();
+                            detailViewHolder.favouriteButton.setBackgroundTintList(
+                                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.colorAccent))
+                            );
                         }
                     }
                 }
@@ -565,7 +583,7 @@ public class MovieDetailsFragment extends Fragment {
         for (String trailerKey : trailerKeys) {
             mContext.deleteFile(movieID + "_" + trailerKey + ".jpg");
         }
-        favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_black_18dp));
+        //detailViewHolder.favouriteButton.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_star_white_18dp));
         Util.isDataChanged = true;
     }
 
