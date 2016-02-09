@@ -111,18 +111,20 @@ public class MovieDetailsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
-        MovieDetailViewHolder viewHolder = new MovieDetailViewHolder(rootView);
-        rootView.setTag(viewHolder);
-
-        detailViewHolder = (MovieDetailViewHolder) rootView.getTag();
-        mContext = getContext();
 
         Bundle bundle = getArguments();
+        if(bundle != null) {
+            View rootView = inflater.inflate(R.layout.fragment_movie_details, container, false);
+            MovieDetailViewHolder viewHolder = new MovieDetailViewHolder(rootView);
+            rootView.setTag(viewHolder);
 
-        updateView(bundle);
+            detailViewHolder = (MovieDetailViewHolder) rootView.getTag();
+            mContext = getContext();
 
-        return rootView;
+            updateView(bundle);
+            return rootView;
+        }
+        return new View(getContext());
     }
 
     private void updateView(Bundle bundle) {
